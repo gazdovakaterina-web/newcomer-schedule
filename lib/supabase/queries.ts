@@ -2,7 +2,6 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { DbSchedule } from "./db-types";
 import { Schedule, TrainingDay, Activity } from "@/lib/types";
 
-/** Trims a Postgres "09:00:00" time string down to "09:00" for display. */
 function trimTime(t: string | null): string | undefined {
   if (!t) return undefined;
   return t.slice(0, 5);
@@ -20,6 +19,7 @@ function mapActivity(row: DbSchedule["training_days"][number]["activities"][numb
     estimatedMinutes: row.estimated_minutes ?? undefined,
     url: row.url ?? undefined,
     location: row.location ?? undefined,
+    includesPractical: row.includes_practical,
   };
 }
 
@@ -56,20 +56,11 @@ const SCHEDULE_SELECT = `
     id, day_number, title, date, description, is_day_off, day_off_reason, sort_order,
     activities (
       id, type, title, description, trainer,
-      start_time, end_time, estimated_minutes, url, location, sort_order
+      start_time, end_time, estimated_minutes, url, location, includes_practical, sort_order
     )
   )
 `;
 
-/**
- * Fetches a schedule by slug for the PUBLIC page. Deliberately does not
- * filter by status in the query itself — RLS does that job instead:
- * anonymous visitors only match the "public read published schedules"
- * policy, so a draft slug resolves to null for them. A logged-in admin
- * (same client, but with a session) additionally matches "admin full access
- * schedules", so this doubles as the "Preview" link for drafts without any
- * extra code path.
- */
 export async function getScheduleBySlug(
   supabase: SupabaseClient,
   slug: string
@@ -92,12 +83,6 @@ export async function getScheduleBySlug(
   return mapSchedule(data as unknown as DbSchedule);
 }
 
-/**
- * Fetches a schedule by id regardless of status (draft/published/archived) —
- * for admin use only. Pass in an authenticated server or browser client;
- * RLS's "admin full access" policies (see supabase/phase3-admin.sql) are
- * what actually gate this, not anything in this function.
- */
 export async function getScheduleByIdForAdmin(
   supabase: SupabaseClient,
   id: string
