@@ -1,3 +1,4 @@
+import { CalendarOff } from "lucide-react";
 import { TrainingDay } from "@/lib/types";
 import { formatDayDate, isToday, isPast } from "@/lib/schedule-dates";
 import ActivityRow from "./ActivityRow";
@@ -15,9 +16,9 @@ export default function DayCard({
   return (
     <section
       id={`day-${day.dayNumber}`}
-      className={`rounded-card bg-white shadow-card p-5 sm:p-7 transition-opacity ${
-        muted && past ? "opacity-60" : "opacity-100"
-      } ${today ? "ring-2 ring-lime" : ""}`}
+      className={`rounded-card shadow-card p-5 sm:p-7 transition-opacity ${
+        day.isDayOff ? "bg-sand border-2 border-dashed border-dark-teal/15" : "bg-white"
+      } ${muted && past ? "opacity-60" : "opacity-100"} ${today ? "ring-2 ring-lime" : ""}`}
     >
       <header className="flex items-start justify-between gap-4 mb-1">
         <div>
@@ -38,11 +39,21 @@ export default function DayCard({
         )}
       </header>
 
-      <div className="mt-4">
-        {day.activities.map((activity) => (
-          <ActivityRow key={activity.id} activity={activity} />
-        ))}
-      </div>
+      {day.isDayOff ? (
+        <div className="mt-5 flex items-center gap-3 text-dark-teal/70">
+          <CalendarOff className="w-5 h-5 shrink-0" strokeWidth={2} />
+          <p className="text-sm">
+            No training today
+            {day.dayOffReason ? ` — ${day.dayOffReason}` : ""}.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-4">
+          {day.activities.map((activity) => (
+            <ActivityRow key={activity.id} activity={activity} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
