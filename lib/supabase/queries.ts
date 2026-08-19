@@ -1,4 +1,4 @@
-import { getSupabaseClient } from "./client";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { DbSchedule } from "./db-types";
 import { Schedule, TrainingDay, Activity } from "@/lib/types";
 
@@ -36,7 +36,7 @@ function mapDay(row: DbSchedule["training_days"][number]): TrainingDay {
   };
 }
 
-function mapSchedule(row: DbSchedule): Schedule {
+export function mapSchedule(row: DbSchedule): Schedule {
   return {
     id: row.id,
     name: row.name,
@@ -48,40 +48,69 @@ function mapSchedule(row: DbSchedule): Schedule {
   };
 }
 
-/**
- * Fetches a published schedule by slug, including its days and activities,
- * in one round trip. Returns null if no published schedule matches — the
- * caller (the page component) is responsible for calling notFound() on null,
- * keeping data-fetching and routing concerns separate.
- */
-export async function getPublishedScheduleBySlug(slug: string): Promise<Schedule | null> {
-  const supabase = getSupabaseClient();
+const SCHEDULE_SELECT = `
+  id, name, slug, status,
+  training_days (
+    id, day_number, title, date, description, sort_order,
+    activities (
+      id, type, title, description, trainer,
+      start_time, end_time, estimated_minutes, url, location, sort_order
+    )
+  )
+`;
 
+/**
+ * Fetches a schedule by slug for the PUBLIC page. Deliberately does not
+ * filter by status in the query itself — RLS does that job instead:
+ * anonymous visitors only match the "public read published schedules"
+ * policy, so a draft slug resolves to null for them. A logged-in admin
+ * (same client, but with a session) additionally matches "admin full access
+ * schedules", so this doubles as the "Preview" link for drafts without any
+ * extra code path.
+ */
+export async function getScheduleBySlug(
+  supabase: SupabaseClient,
+  slug: string
+): Promise<Schedule | null> {
   const { data, error } = await supabase
     .from("schedules")
-    .select(
-      `
-      id, name, slug, status,
-      training_days (
-        id, day_number, title, date, description, sort_order,
-        activities (
-          id, type, title, description, trainer,
-          start_time, end_time, estimated_minutes, url, location, sort_order
-        )
-      )
-    `
-    )
+    .select(SCHEDULE_SELECT)
     .eq("slug", slug)
-    .eq("status", "published")
     .order("sort_order", { referencedTable: "training_days" })
     .order("sort_order", { referencedTable: "training_days.activities" })
     .maybeSingle();
 
   if (error) {
-    // Surfacing the real error in server logs is more useful than a generic
-    // "not found" here — this only ever runs server-side, never in the browser.
-    console.error("getPublishedScheduleBySlug failed:", error);
+    console.error("getScheduleBySlug failed:", error);
     throw new Error(`Failed to load schedule "${slug}": ${error.message}`);
+  }
+
+  if (!data) return null;
+
+  return mapSchedule(data as unknown as DbSchedule);
+}
+
+/**
+ * Fetches a schedule by id regardless of status (draft/published/archived) —
+ * for admin use only. Pass in an authenticated server or browser client;
+ * RLS's "admin full access" policies (see supabase/phase3-admin.sql) are
+ * what actually gate this, not anything in this function.
+ */
+export async function getScheduleByIdForAdmin(
+  supabase: SupabaseClient,
+  id: string
+): Promise<Schedule | null> {
+  const { data, error } = await supabase
+    .from("schedules")
+    .select(SCHEDULE_SELECT)
+    .eq("id", id)
+    .order("sort_order", { referencedTable: "training_days" })
+    .order("sort_order", { referencedTable: "training_days.activities" })
+    .maybeSingle();
+
+  if (error) {
+    console.error("getScheduleByIdForAdmin failed:", error);
+    throw new Error(`Failed to load schedule "${id}": ${error.message}`);
   }
 
   if (!data) return null;
