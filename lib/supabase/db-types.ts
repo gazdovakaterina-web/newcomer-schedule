@@ -1,6 +1,6 @@
 export interface DbActivity {
   id: string;
-  type: "training" | "learning_hub" | "task" | "break";
+  type: "presentation" | "check_in" | "team_meeting" | "learning_hub" | "task" | "break";
   title: string;
   description: string | null;
   trainer: string | null;
@@ -18,6 +18,8 @@ export interface DbTrainingDay {
   title: string;
   date: string; // "2026-08-19"
   description: string | null;
+  is_day_off: boolean;
+  day_off_reason: string | null;
   sort_order: number;
   activities: DbActivity[];
 }
