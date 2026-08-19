@@ -1,6 +1,6 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, CalendarOff } from "lucide-react";
 import { TrainingDay } from "@/lib/types";
 import { isToday, isPast } from "@/lib/schedule-dates";
 
@@ -32,7 +32,9 @@ export default function JourneyRail({
                 <span
                   className={[
                     "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition",
-                    today
+                    day.isDayOff && !today
+                      ? "bg-sand border-2 border-dashed border-dark-teal/25 text-dark-teal/40"
+                      : today
                       ? "bg-lime text-dark-teal ring-4 ring-lime/30"
                       : past
                       ? "bg-dark-teal text-white"
@@ -40,7 +42,13 @@ export default function JourneyRail({
                     active ? "scale-110" : "group-hover:scale-105",
                   ].join(" ")}
                 >
-                  {past ? <Check className="w-4 h-4" strokeWidth={2.5} /> : day.dayNumber}
+                  {day.isDayOff && !today ? (
+                    <CalendarOff className="w-3.5 h-3.5" strokeWidth={2} />
+                  ) : past ? (
+                    <Check className="w-4 h-4" strokeWidth={2.5} />
+                  ) : (
+                    day.dayNumber
+                  )}
                 </span>
                 <span
                   className={[
@@ -48,7 +56,7 @@ export default function JourneyRail({
                     active ? "text-dark-teal" : "text-dark-teal/50",
                   ].join(" ")}
                 >
-                  {today ? "Today" : `Day ${day.dayNumber}`}
+                  {today ? "Today" : day.isDayOff ? "Day off" : `Day ${day.dayNumber}`}
                 </span>
               </button>
 
