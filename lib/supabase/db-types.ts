@@ -4,11 +4,12 @@ export interface DbActivity {
   title: string;
   description: string | null;
   trainer: string | null;
-  start_time: string | null; // "09:00:00"
+  start_time: string | null;
   end_time: string | null;
   estimated_minutes: number | null;
   url: string | null;
   location: string | null;
+  includes_practical: boolean;
   sort_order: number;
 }
 
@@ -16,7 +17,7 @@ export interface DbTrainingDay {
   id: string;
   day_number: number;
   title: string;
-  date: string; // "2026-08-19"
+  date: string;
   description: string | null;
   is_day_off: boolean;
   day_off_reason: string | null;
