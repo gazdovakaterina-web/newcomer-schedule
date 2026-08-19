@@ -2,13 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, GraduationCap, Puzzle, Wrench, Coffee } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Presentation,
+  MessageCircle,
+  Users,
+  Puzzle,
+  Wrench,
+  Coffee,
+} from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { TrainingDay, Activity } from "@/lib/types";
+import { TrainingDay, Activity, ActivityType } from "@/lib/types";
 import ActivityEditorModal from "./ActivityEditorModal";
 
-const typeIcon: Record<Activity["type"], typeof GraduationCap> = {
-  training: GraduationCap,
+const typeIcon: Record<ActivityType, typeof Presentation> = {
+  presentation: Presentation,
+  check_in: MessageCircle,
+  team_meeting: Users,
   learning_hub: Puzzle,
   task: Wrench,
   break: Coffee,
@@ -18,16 +29,25 @@ export default function AdminDayCard({ day }: { day: TrainingDay }) {
   const router = useRouter();
   const [title, setTitle] = useState(day.title);
   const [date, setDate] = useState(day.date);
+  const [isDayOff, setIsDayOff] = useState(Boolean(day.isDayOff));
+  const [dayOffReason, setDayOffReason] = useState(day.dayOffReason ?? "");
   const [savingMeta, setSavingMeta] = useState(false);
   const [modalState, setModalState] = useState<{ activity: Activity | null } | null>(null);
 
-  async function saveMeta() {
-    if (title === day.title && date === day.date) return;
+  async function saveMeta(overrides?: { isDayOff?: boolean; dayOffReason?: string }) {
+    const nextIsDayOff = overrides?.isDayOff ?? isDayOff;
+    const nextDayOffReason = overrides?.dayOffReason ?? dayOffReason;
+
     setSavingMeta(true);
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase
       .from("training_days")
-      .update({ title, date })
+      .update({
+        title,
+        date,
+        is_day_off: nextIsDayOff,
+        day_off_reason: nextIsDayOff ? nextDayOffReason || null : null,
+      })
       .eq("id", day.id);
     setSavingMeta(false);
     if (error) {
@@ -49,7 +69,11 @@ export default function AdminDayCard({ day }: { day: TrainingDay }) {
   }
 
   return (
-    <section className="rounded-card bg-white shadow-card p-5 sm:p-6">
+    <section
+      className={`rounded-card shadow-card p-5 sm:p-6 ${
+        isDayOff ? "bg-sand border-2 border-dashed border-dark-teal/15" : "bg-white"
+      }`}
+    >
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex-1 min-w-0">
           <div className="text-xs font-medium tracking-widest uppercase text-teal/70 mb-1">
@@ -58,14 +82,14 @@ export default function AdminDayCard({ day }: { day: TrainingDay }) {
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            onBlur={saveMeta}
+            onBlur={() => saveMeta()}
             className="w-full text-lg font-medium text-dark-teal border-b border-transparent hover:border-dark-teal/15 focus:border-teal outline-none pb-0.5 bg-transparent"
           />
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            onBlur={saveMeta}
+            onBlur={() => saveMeta()}
             className="mt-2 text-sm text-dark-teal/60 border-b border-transparent hover:border-dark-teal/15 focus:border-teal outline-none bg-transparent"
           />
           {savingMeta && <span className="text-xs text-dark-teal/40 ml-2">Saving…</span>}
@@ -80,41 +104,71 @@ export default function AdminDayCard({ day }: { day: TrainingDay }) {
         </button>
       </div>
 
-      <div className="space-y-1">
-        {day.activities.map((activity) => {
-          const Icon = typeIcon[activity.type];
-          return (
-            <button
-              key={activity.id}
-              onClick={() => setModalState({ activity })}
-              className="w-full flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-sand/70 transition text-left"
-            >
-              <Icon className="w-4 h-4 shrink-0 text-teal" strokeWidth={2} />
-              <span className="flex-1 min-w-0 truncate text-sm text-dark-teal">
-                {activity.title}
-              </span>
-              {(activity.startTime || activity.endTime) && (
-                <span className="text-xs text-dark-teal/40 tabular-nums shrink-0">
-                  {activity.startTime}
-                  {activity.endTime ? `–${activity.endTime}` : ""}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      <label className="flex items-center gap-2 py-1 mb-2">
+        <input
+          type="checkbox"
+          checked={isDayOff}
+          onChange={(e) => {
+            const next = e.target.checked;
+            setIsDayOff(next);
+            saveMeta({ isDayOff: next });
+          }}
+          className="w-4 h-4 rounded border-dark-teal/30 text-teal focus:ring-teal"
+        />
+        <span className="text-sm font-medium text-dark-teal/80">
+          Day off (bank holiday, team building, etc.)
+        </span>
+      </label>
 
-        {day.activities.length === 0 && (
-          <p className="text-sm text-dark-teal/40 py-2 px-2">No activities yet.</p>
-        )}
-      </div>
+      {isDayOff && (
+        <input
+          value={dayOffReason}
+          onChange={(e) => setDayOffReason(e.target.value)}
+          onBlur={() => saveMeta()}
+          placeholder="e.g. Bank Holiday, Company Team Building"
+          className="mb-4 w-full rounded-lg border border-dark-teal/15 px-3 py-2 text-sm text-dark-teal focus:border-teal outline-none bg-white"
+        />
+      )}
 
-      <button
-        onClick={() => setModalState({ activity: null })}
-        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-teal hover:underline"
-      >
-        <Plus className="w-4 h-4" strokeWidth={2.25} />
-        Add activity
-      </button>
+      {!isDayOff && (
+        <>
+          <div className="space-y-1">
+            {day.activities.map((activity) => {
+              const Icon = typeIcon[activity.type];
+              return (
+                <button
+                  key={activity.id}
+                  onClick={() => setModalState({ activity })}
+                  className="w-full flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-sand/70 transition text-left"
+                >
+                  <Icon className="w-4 h-4 shrink-0 text-teal" strokeWidth={2} />
+                  <span className="flex-1 min-w-0 truncate text-sm text-dark-teal">
+                    {activity.title}
+                  </span>
+                  {(activity.startTime || activity.endTime) && (
+                    <span className="text-xs text-dark-teal/40 tabular-nums shrink-0">
+                      {activity.startTime}
+                      {activity.endTime ? `–${activity.endTime}` : ""}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            {day.activities.length === 0 && (
+              <p className="text-sm text-dark-teal/40 py-2 px-2">No activities yet.</p>
+            )}
+          </div>
+
+          <button
+            onClick={() => setModalState({ activity: null })}
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-teal hover:underline"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2.25} />
+            Add activity
+          </button>
+        </>
+      )}
 
       {modalState && (
         <ActivityEditorModal
