@@ -30,6 +30,8 @@ function mapDay(row: DbSchedule["training_days"][number]): TrainingDay {
     title: row.title,
     date: row.date,
     description: row.description ?? undefined,
+    isDayOff: row.is_day_off,
+    dayOffReason: row.day_off_reason ?? undefined,
     activities: [...row.activities]
       .sort((a, b) => a.sort_order - b.sort_order)
       .map(mapActivity),
@@ -51,7 +53,7 @@ export function mapSchedule(row: DbSchedule): Schedule {
 const SCHEDULE_SELECT = `
   id, name, slug, status,
   training_days (
-    id, day_number, title, date, description, sort_order,
+    id, day_number, title, date, description, is_day_off, day_off_reason, sort_order,
     activities (
       id, type, title, description, trainer,
       start_time, end_time, estimated_minutes, url, location, sort_order
