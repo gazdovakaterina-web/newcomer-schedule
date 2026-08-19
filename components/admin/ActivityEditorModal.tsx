@@ -55,6 +55,9 @@ export default function ActivityEditorModal({
     activity?.estimatedMinutes?.toString() ?? ""
   );
   const [url, setUrl] = useState(activity?.url ?? "");
+  const [includesPractical, setIncludesPractical] = useState(
+    Boolean(activity?.includesPractical)
+  );
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +94,7 @@ export default function ActivityEditorModal({
           : null
         : null,
       url: type !== "break" ? url || null : null,
+      includes_practical: type === "learning_hub" ? includesPractical : false,
       ...(activity ? {} : { sort_order: nextSortOrder }),
     };
 
@@ -282,6 +286,20 @@ export default function ActivityEditorModal({
                 placeholder="https://…"
                 className="mt-1 w-full rounded-lg border border-dark-teal/15 px-3 py-2 text-dark-teal focus:border-teal outline-none"
               />
+            </label>
+          )}
+
+          {type === "learning_hub" && (
+            <label className="flex items-center gap-2 py-1">
+              <input
+                type="checkbox"
+                checked={includesPractical}
+                onChange={(e) => setIncludesPractical(e.target.checked)}
+                className="w-4 h-4 rounded border-dark-teal/30 text-teal focus:ring-teal"
+              />
+              <span className="text-sm font-medium text-dark-teal/80">
+                Includes a hands-on practical exercise
+              </span>
             </label>
           )}
 
