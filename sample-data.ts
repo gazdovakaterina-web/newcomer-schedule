@@ -1,0 +1,245 @@
+import { Schedule, TrainingDay } from "./types";
+import { calculateDate } from "./schedule-dates";
+
+const START_DATE = new Date(2026, 7, 17); // August 17, 2026 (month is 0-indexed)
+const SKIP_WEEKENDS = true;
+
+function iso(dayNumber: number): string {
+  const d = calculateDate(START_DATE, dayNumber, SKIP_WEEKENDS);
+  return d.toISOString().slice(0, 10);
+}
+
+const days: TrainingDay[] = [
+  {
+    id: "day-1",
+    dayNumber: 1,
+    title: "Introduction & Company",
+    date: iso(1),
+    activities: [
+      {
+        id: "d1-a1",
+        type: "training",
+        title: "Welcome & Company Introduction",
+        trainer: "Kate",
+        startTime: "09:00",
+        endTime: "10:15",
+        description: "Meet the team, get an overview of Webnode, and understand how Customer Care fits into the bigger picture.",
+      },
+      { id: "d1-a2", type: "break", title: "Break", startTime: "10:15", endTime: "10:30" },
+      {
+        id: "d1-a3",
+        type: "training",
+        title: "Customer Care Basics",
+        trainer: "Martin",
+        startTime: "11:00",
+        endTime: "12:30",
+        description: "The fundamentals of how our Customer Care team works, our tone of voice, and what great support looks like.",
+      },
+      {
+        id: "d1-a4",
+        type: "learning_hub",
+        title: "Customer Care Introduction",
+        description: 'Complete the "Customer Care Introduction" lesson in the Learning Hub.',
+        estimatedMinutes: 30,
+        url: "#",
+        startTime: "14:00",
+      },
+    ],
+  },
+  {
+    id: "day-2",
+    dayNumber: 2,
+    title: "Website Builder",
+    date: iso(2),
+    activities: [
+      {
+        id: "d2-a1",
+        type: "training",
+        title: "Website Builder Basics",
+        trainer: "Kate",
+        startTime: "09:00",
+        endTime: "10:30",
+        description: "A hands-on walkthrough of the Website Builder — the tool most of our customers use every day.",
+      },
+      {
+        id: "d2-a2",
+        type: "learning_hub",
+        title: "Website Builder Lesson",
+        description: "Complete the Website Builder lesson in the Learning Hub.",
+        estimatedMinutes: 30,
+        url: "#",
+        startTime: "13:00",
+      },
+      {
+        id: "d2-a3",
+        type: "task",
+        title: "Create Your First Test Website",
+        description: "Use the Website Builder to create a simple test website from scratch. No need to publish it.",
+        estimatedMinutes: 45,
+        startTime: "15:00",
+      },
+    ],
+  },
+  {
+    id: "day-3",
+    dayNumber: 3,
+    title: "Business Website, AI & Domains",
+    date: iso(3),
+    activities: [
+      {
+        id: "d3-a1",
+        type: "training",
+        title: "Business Website & AI Tools",
+        trainer: "Martin",
+        startTime: "09:00",
+        endTime: "10:30",
+        description: "How our Business Website product works, and the AI tools that help customers build faster.",
+      },
+      { id: "d3-a2", type: "break", title: "Lunch Break", startTime: "12:00", endTime: "13:00" },
+      {
+        id: "d3-a3",
+        type: "training",
+        title: "Domains Explained",
+        trainer: "Kate",
+        startTime: "13:00",
+        endTime: "14:00",
+        description: "Domain registration, connection, and the most common customer questions around domains.",
+      },
+      {
+        id: "d3-a4",
+        type: "learning_hub",
+        title: "Domains & Business Website Lesson",
+        description: "Complete the Domains & Business Website lesson in the Learning Hub.",
+        estimatedMinutes: 25,
+        url: "#",
+        startTime: "15:00",
+      },
+    ],
+  },
+  {
+    id: "day-4",
+    dayNumber: 4,
+    title: "Emails & Online Store",
+    date: iso(4),
+    activities: [
+      {
+        id: "d4-a1",
+        type: "training",
+        title: "Email Accounts & Marketing",
+        trainer: "Martin",
+        startTime: "09:00",
+        endTime: "10:15",
+        description: "Setting up email accounts and the basics of email marketing tools.",
+      },
+      {
+        id: "d4-a2",
+        type: "training",
+        title: "Online Store Basics",
+        trainer: "Maria",
+        startTime: "10:30",
+        endTime: "12:00",
+        description: "How the Online Store product works, from product listings to checkout.",
+      },
+      {
+        id: "d4-a3",
+        type: "task",
+        title: "Set Up a Test Online Store",
+        description: "Add three products to a test store and walk through the checkout flow as a customer would.",
+        estimatedMinutes: 40,
+        startTime: "14:00",
+      },
+    ],
+  },
+  {
+    id: "day-5",
+    dayNumber: 5,
+    title: "Customer Communication & Freshdesk & Tools",
+    date: iso(5),
+    activities: [
+      {
+        id: "d5-a1",
+        type: "training",
+        title: "Customer Communication",
+        trainer: "Kate",
+        startTime: "09:00",
+        endTime: "10:00",
+        description: "How we talk to customers — tone, empathy, and handling difficult conversations.",
+      },
+      {
+        id: "d5-a2",
+        type: "training",
+        title: "Freshdesk Basics",
+        trainer: "Maria",
+        startTime: "10:15",
+        endTime: "11:00",
+        description: "Navigating Freshdesk: tickets, views, and the tools you'll use every day.",
+      },
+      {
+        id: "d5-a3",
+        type: "learning_hub",
+        title: "Customer Communication Lesson",
+        description: 'Complete the "Customer Communication" lesson in the Learning Hub.',
+        estimatedMinutes: 30,
+        url: "#",
+      },
+      {
+        id: "d5-a4",
+        type: "task",
+        title: "Freshdesk Search Task",
+        description: "Find the user's role in Webnode Tools using a Freshdesk search.",
+        estimatedMinutes: 20,
+      },
+    ],
+  },
+  {
+    id: "day-6",
+    dayNumber: 6,
+    title: "Payments, Refunds & Affiliate",
+    date: iso(6),
+    activities: [
+      {
+        id: "d6-a1",
+        type: "training",
+        title: "Payments & Billing",
+        trainer: "Martin",
+        startTime: "09:00",
+        endTime: "10:15",
+        description: "How payments and billing cycles work, and how to read a customer's billing history.",
+      },
+      {
+        id: "d6-a2",
+        type: "training",
+        title: "Refunds & the Affiliate Program",
+        trainer: "Maria",
+        startTime: "10:30",
+        endTime: "11:30",
+        description: "Our refund policy in practice, plus an overview of the Affiliate Program.",
+      },
+      {
+        id: "d6-a3",
+        type: "learning_hub",
+        title: "Payments & Refunds Lesson",
+        description: "Complete the Payments & Refunds lesson in the Learning Hub.",
+        estimatedMinutes: 25,
+        url: "#",
+        startTime: "13:00",
+      },
+      {
+        id: "d6-a4",
+        type: "task",
+        title: "Practice Refund Scenario",
+        description: "Work through a sample refund request end to end, from ticket to resolution.",
+        estimatedMinutes: 30,
+        startTime: "14:00",
+      },
+    ],
+  },
+];
+
+export const sampleSchedule: Schedule = {
+  id: "sample-1",
+  name: "Customer Care Newcomer – Standard",
+  slug: "customer-care",
+  status: "published",
+  days,
+};
