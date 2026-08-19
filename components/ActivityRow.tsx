@@ -103,7 +103,8 @@ export default function ActivityRow({ activity }: { activity: Activity }) {
         <div className="mt-2 flex flex-wrap items-center gap-3">
           {activity.trainer && (
             <span className="text-sm text-dark-teal/60">
-              Trainer: <span className="text-dark-teal font-medium">{activity.trainer}</span>
+              {activity.type === "team_meeting" ? "Team Leader" : "Trainer"}:{" "}
+              <span className="text-dark-teal font-medium">{activity.trainer}</span>
             </span>
           )}
           {activity.estimatedMinutes && (
