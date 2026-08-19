@@ -17,6 +17,7 @@ export interface Activity {
   estimatedMinutes?: number;
   url?: string;
   location?: string;
+  includesPractical?: boolean;
 }
 
 export interface TrainingDay {
@@ -25,8 +26,8 @@ export interface TrainingDay {
   title: string;
   date: string; // ISO date "2026-08-17"
   description?: string;
-  isDayOff?: boolean; // bank holiday, team building, etc. — no training scheduled
-  dayOffReason?: string; // e.g. "Bank Holiday", "Company Team Building"
+  isDayOff?: boolean;
+  dayOffReason?: string;
   activities: Activity[];
 }
 
