@@ -18,7 +18,7 @@ const days: TrainingDay[] = [
     activities: [
       {
         id: "d1-a1",
-        type: "training",
+        type: "presentation",
         title: "Welcome & Company Introduction",
         trainer: "Kate",
         startTime: "09:00",
@@ -28,7 +28,7 @@ const days: TrainingDay[] = [
       { id: "d1-a2", type: "break", title: "Break", startTime: "10:15", endTime: "10:30" },
       {
         id: "d1-a3",
-        type: "training",
+        type: "presentation",
         title: "Customer Care Basics",
         trainer: "Martin",
         startTime: "11:00",
@@ -54,7 +54,7 @@ const days: TrainingDay[] = [
     activities: [
       {
         id: "d2-a1",
-        type: "training",
+        type: "presentation",
         title: "Website Builder Basics",
         trainer: "Kate",
         startTime: "09:00",
@@ -88,7 +88,7 @@ const days: TrainingDay[] = [
     activities: [
       {
         id: "d3-a1",
-        type: "training",
+        type: "presentation",
         title: "Business Website & AI Tools",
         trainer: "Martin",
         startTime: "09:00",
@@ -98,7 +98,7 @@ const days: TrainingDay[] = [
       { id: "d3-a2", type: "break", title: "Lunch Break", startTime: "12:00", endTime: "13:00" },
       {
         id: "d3-a3",
-        type: "training",
+        type: "presentation",
         title: "Domains Explained",
         trainer: "Kate",
         startTime: "13:00",
@@ -124,7 +124,7 @@ const days: TrainingDay[] = [
     activities: [
       {
         id: "d4-a1",
-        type: "training",
+        type: "presentation",
         title: "Email Accounts & Marketing",
         trainer: "Martin",
         startTime: "09:00",
@@ -133,7 +133,7 @@ const days: TrainingDay[] = [
       },
       {
         id: "d4-a2",
-        type: "training",
+        type: "presentation",
         title: "Online Store Basics",
         trainer: "Maria",
         startTime: "10:30",
@@ -158,7 +158,7 @@ const days: TrainingDay[] = [
     activities: [
       {
         id: "d5-a1",
-        type: "training",
+        type: "presentation",
         title: "Customer Communication",
         trainer: "Kate",
         startTime: "09:00",
@@ -167,7 +167,7 @@ const days: TrainingDay[] = [
       },
       {
         id: "d5-a2",
-        type: "training",
+        type: "presentation",
         title: "Freshdesk Basics",
         trainer: "Maria",
         startTime: "10:15",
@@ -199,7 +199,7 @@ const days: TrainingDay[] = [
     activities: [
       {
         id: "d6-a1",
-        type: "training",
+        type: "presentation",
         title: "Payments & Billing",
         trainer: "Martin",
         startTime: "09:00",
@@ -208,7 +208,7 @@ const days: TrainingDay[] = [
       },
       {
         id: "d6-a2",
-        type: "training",
+        type: "presentation",
         title: "Refunds & the Affiliate Program",
         trainer: "Maria",
         startTime: "10:30",
