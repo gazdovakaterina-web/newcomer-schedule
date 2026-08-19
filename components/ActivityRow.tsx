@@ -82,13 +82,11 @@ export default function ActivityRow({ activity }: { activity: Activity }) {
           <span className="text-[11px] font-medium uppercase tracking-wide text-teal/80">
             {typeLabel[activity.type]}
           </span>
-          {activity.startTime || activity.endTime ? (
+          {(activity.startTime || activity.endTime) && (
             <span className="text-[11px] text-dark-teal/50 tabular-nums">
               {activity.startTime}
               {activity.endTime ? `–${activity.endTime}` : ""}
             </span>
-          ) : (
-            <span className="text-[11px] text-dark-teal/50 italic">Anytime today</span>
           )}
         </div>
 
@@ -112,6 +110,12 @@ export default function ActivityRow({ activity }: { activity: Activity }) {
             <span className="inline-flex items-center gap-1 text-sm text-dark-teal/60">
               <Clock className="w-3.5 h-3.5" strokeWidth={2} />
               ~{activity.estimatedMinutes} min
+            </span>
+          )}
+          {isLearningHub && activity.includesPractical && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-dark-teal/70 bg-sand border border-dark-teal/15 rounded-full px-2 py-0.5">
+              <Wrench className="w-3 h-3" strokeWidth={2} />
+              Includes practical task
             </span>
           )}
         </div>
