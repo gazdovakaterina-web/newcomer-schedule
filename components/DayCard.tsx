@@ -28,7 +28,9 @@ export default function DayCard({
   const today = isToday(day.date);
   const past = isPast(day.date) && !today;
 
-  const timedActivities = day.activities.filter((a) => a.startTime || a.endTime);
+  const timedActivities = day.activities
+    .filter((a) => a.startTime || a.endTime)
+    .sort((a, b) => (a.startTime ?? a.endTime ?? "").localeCompare(b.startTime ?? b.endTime ?? ""));
   const flexibleActivities = day.activities.filter((a) => !a.startTime && !a.endTime);
 
   return (
