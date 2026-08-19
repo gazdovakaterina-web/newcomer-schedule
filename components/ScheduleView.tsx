@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Schedule } from "@/lib/types";
 import { findFocusDayIndex } from "@/lib/schedule-dates";
 import ScheduleHeader from "./ScheduleHeader";
+import ScheduleIntroBanner from "./ScheduleIntroBanner";
 import JourneyRail from "./JourneyRail";
 import DayNav from "./DayNav";
 import DayCard from "./DayCard";
@@ -18,6 +19,8 @@ export default function ScheduleView({ schedule }: { schedule: Schedule }) {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <ScheduleHeader schedule={schedule} />
+
+      <ScheduleIntroBanner />
 
       <div className="mb-8">
         <JourneyRail
