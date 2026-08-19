@@ -1,7 +1,22 @@
-import { CalendarOff } from "lucide-react";
+import { CalendarOff, Clock, CheckCircle2 } from "lucide-react";
 import { TrainingDay } from "@/lib/types";
 import { formatDayDate, isToday, isPast } from "@/lib/schedule-dates";
 import ActivityRow from "./ActivityRow";
+
+function SectionLabel({
+  icon: Icon,
+  children,
+}: {
+  icon: typeof Clock;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase text-teal/60 mb-1">
+      <Icon className="w-3.5 h-3.5" strokeWidth={2.25} />
+      {children}
+    </div>
+  );
+}
 
 export default function DayCard({
   day,
@@ -12,6 +27,9 @@ export default function DayCard({
 }) {
   const today = isToday(day.date);
   const past = isPast(day.date) && !today;
+
+  const timedActivities = day.activities.filter((a) => a.startTime || a.endTime);
+  const flexibleActivities = day.activities.filter((a) => !a.startTime && !a.endTime);
 
   return (
     <section
@@ -48,10 +66,35 @@ export default function DayCard({
           </p>
         </div>
       ) : (
-        <div className="mt-4">
-          {day.activities.map((activity) => (
-            <ActivityRow key={activity.id} activity={activity} />
-          ))}
+        <div className="mt-5 space-y-6">
+          {timedActivities.length > 0 && (
+            <div>
+              <SectionLabel icon={Clock}>Today&rsquo;s Schedule — Fixed Times</SectionLabel>
+              <div>
+                {timedActivities.map((activity) => (
+                  <ActivityRow key={activity.id} activity={activity} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {flexibleActivities.length > 0 && (
+            <div className="rounded-xl bg-sand/60 border border-dashed border-dark-teal/15 p-4">
+              <SectionLabel icon={CheckCircle2}>Complete Anytime Today</SectionLabel>
+              <p className="text-xs text-dark-teal/40 -mt-0.5 mb-1">
+                No set time — do these whenever fits your day.
+              </p>
+              <div>
+                {flexibleActivities.map((activity) => (
+                  <ActivityRow key={activity.id} activity={activity} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {day.activities.length === 0 && (
+            <p className="text-sm text-dark-teal/40">Nothing scheduled yet.</p>
+          )}
         </div>
       )}
     </section>
