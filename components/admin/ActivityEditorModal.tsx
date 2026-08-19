@@ -1,17 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { X, GraduationCap, Puzzle, Wrench, Coffee } from "lucide-react";
+import {
+  X,
+  Presentation,
+  MessageCircle,
+  Users,
+  Puzzle,
+  Wrench,
+  Coffee,
+} from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useRouter } from "next/navigation";
 import { Activity, ActivityType } from "@/lib/types";
 
-const typeOptions: { value: ActivityType; label: string; icon: typeof GraduationCap }[] = [
-  { value: "training", label: "Instructor-led", icon: GraduationCap },
+const typeOptions: { value: ActivityType; label: string; icon: typeof Presentation }[] = [
+  { value: "presentation", label: "Presentation", icon: Presentation },
+  { value: "check_in", label: "Check-in", icon: MessageCircle },
+  { value: "team_meeting", label: "Team Leaders", icon: Users },
   { value: "learning_hub", label: "Learning Hub", icon: Puzzle },
   { value: "task", label: "Practical task", icon: Wrench },
   { value: "break", label: "Break", icon: Coffee },
 ];
+
+const TRAINER_TYPES = new Set<ActivityType>(["presentation", "check_in", "team_meeting"]);
+const SINGLE_TIME_TYPES = new Set<ActivityType>(["task", "check_in"]);
+const DURATION_TYPES = new Set<ActivityType>(["learning_hub", "task", "check_in"]);
+function defaultTimedFor(type: ActivityType): boolean {
+  return type === "break" || type === "presentation" || type === "team_meeting";
+}
 
 export default function ActivityEditorModal({
   trainingDayId,
@@ -20,17 +37,20 @@ export default function ActivityEditorModal({
   onClose,
 }: {
   trainingDayId: string;
-  activity: Activity | null; // null = creating a new activity
-  nextSortOrder: number; // sort_order to use when creating (ignored when editing)
+  activity: Activity | null;
+  nextSortOrder: number;
   onClose: () => void;
 }) {
   const router = useRouter();
-  const [type, setType] = useState<ActivityType>(activity?.type ?? "training");
+  const [type, setType] = useState<ActivityType>(activity?.type ?? "presentation");
   const [title, setTitle] = useState(activity?.title ?? "");
   const [description, setDescription] = useState(activity?.description ?? "");
   const [trainer, setTrainer] = useState(activity?.trainer ?? "");
   const [startTime, setStartTime] = useState(activity?.startTime ?? "");
   const [endTime, setEndTime] = useState(activity?.endTime ?? "");
+  const [hasTime, setHasTime] = useState<boolean>(
+    activity ? Boolean(activity.startTime || activity.endTime) : defaultTimedFor(type)
+  );
   const [estimatedMinutes, setEstimatedMinutes] = useState(
     activity?.estimatedMinutes?.toString() ?? ""
   );
@@ -38,6 +58,17 @@ export default function ActivityEditorModal({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function handleTypeChange(next: ActivityType) {
+    setType(next);
+    if (!activity) {
+      setHasTime(defaultTimedFor(next));
+    } else if (next === "break") {
+      setHasTime(true);
+    }
+  }
+
+  const timed = type === "break" ? true : hasTime;
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -51,15 +82,14 @@ export default function ActivityEditorModal({
       type,
       title,
       description: description || null,
-      trainer: type === "training" ? trainer || null : null,
-      start_time: startTime || null,
-      end_time: endTime || null,
-      estimated_minutes:
-        type === "learning_hub" || type === "task"
-          ? estimatedMinutes
-            ? Number(estimatedMinutes)
-            : null
-          : null,
+      trainer: TRAINER_TYPES.has(type) ? trainer || null : null,
+      start_time: timed && startTime ? startTime : null,
+      end_time: timed && !SINGLE_TIME_TYPES.has(type) && endTime ? endTime : null,
+      estimated_minutes: DURATION_TYPES.has(type)
+        ? estimatedMinutes
+          ? Number(estimatedMinutes)
+          : null
+        : null,
       url: type !== "break" ? url || null : null,
       ...(activity ? {} : { sort_order: nextSortOrder }),
     };
@@ -115,8 +145,7 @@ export default function ActivityEditorModal({
         </div>
 
         <form onSubmit={handleSave} className="space-y-4">
-          {/* Activity type picker */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {typeOptions.map((opt) => {
               const Icon = opt.icon;
               const active = type === opt.value;
@@ -124,7 +153,7 @@ export default function ActivityEditorModal({
                 <button
                   type="button"
                   key={opt.value}
-                  onClick={() => setType(opt.value)}
+                  onClick={() => handleTypeChange(opt.value)}
                   className={`flex flex-col items-center gap-1 rounded-lg border py-2.5 text-[11px] font-medium transition ${
                     active
                       ? "border-teal bg-teal/10 text-dark-teal"
@@ -160,7 +189,7 @@ export default function ActivityEditorModal({
             />
           </label>
 
-          {type === "training" && (
+          {TRAINER_TYPES.has(type) && (
             <label className="block">
               <span className="text-sm font-medium text-dark-teal/80">Trainer</span>
               <input
@@ -171,7 +200,27 @@ export default function ActivityEditorModal({
             </label>
           )}
 
-          {type !== "task" && (
+          {type !== "break" && (
+            <label className="flex items-center gap-2 py-1">
+              <input
+                type="checkbox"
+                checked={hasTime}
+                onChange={(e) => setHasTime(e.target.checked)}
+                className="w-4 h-4 rounded border-dark-teal/30 text-teal focus:ring-teal"
+              />
+              <span className="text-sm font-medium text-dark-teal/80">
+                Happens at a specific time
+              </span>
+            </label>
+          )}
+
+          {!timed && type !== "break" && (
+            <p className="text-sm text-dark-teal/50 -mt-2">
+              This will show as a to-do for the day — the trainee completes it whenever works for them, with no fixed slot.
+            </p>
+          )}
+
+          {timed && !SINGLE_TIME_TYPES.has(type) && (
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
                 <span className="text-sm font-medium text-dark-teal/80">Start</span>
@@ -194,9 +243,9 @@ export default function ActivityEditorModal({
             </div>
           )}
 
-          {type === "task" && (
+          {timed && SINGLE_TIME_TYPES.has(type) && (
             <label className="block">
-              <span className="text-sm font-medium text-dark-teal/80">Start (optional)</span>
+              <span className="text-sm font-medium text-dark-teal/80">Start</span>
               <input
                 type="time"
                 value={startTime}
@@ -206,7 +255,7 @@ export default function ActivityEditorModal({
             </label>
           )}
 
-          {(type === "learning_hub" || type === "task") && (
+          {DURATION_TYPES.has(type) && (
             <label className="block">
               <span className="text-sm font-medium text-dark-teal/80">
                 Estimated duration (minutes)
