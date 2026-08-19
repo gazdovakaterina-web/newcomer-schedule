@@ -6,6 +6,7 @@ import {
   Wrench,
   Coffee,
   ArrowUpRight,
+  Video,
   Clock,
 } from "lucide-react";
 import { Activity, ActivityType } from "@/lib/types";
@@ -37,6 +38,16 @@ const iconStyle: Record<ActivityType, string> = {
   break: "",
 };
 
+function isTeamsLink(url?: string): boolean {
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host.includes("teams.microsoft.com") || host.includes("teams.live.com");
+  } catch {
+    return false;
+  }
+}
+
 export default function ActivityRow({ activity }: { activity: Activity }) {
   if (activity.type === "break") {
     return (
@@ -55,6 +66,7 @@ export default function ActivityRow({ activity }: { activity: Activity }) {
 
   const Icon = typeIcon[activity.type];
   const isLearningHub = activity.type === "learning_hub";
+  const meetingLabel = isLearningHub ? null : isTeamsLink(activity.url) ? "Join Teams Meeting" : null;
 
   return (
     <div className="flex gap-3 sm:gap-4 py-4 border-b border-dark-teal/8 last:border-b-0">
@@ -105,12 +117,20 @@ export default function ActivityRow({ activity }: { activity: Activity }) {
         </div>
 
         {activity.url && (
-          <a
+          
             href={activity.url}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-lime px-4 py-2 text-sm font-medium text-dark-teal hover:brightness-95 transition"
+            className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${
+              meetingLabel
+                ? "bg-teal text-white hover:brightness-110"
+                : "bg-lime text-dark-teal hover:brightness-95"
+            }`}
           >
-            {isLearningHub ? "Open Learning Hub" : "Open link"}
-            <ArrowUpRight className="w-4 h-4" strokeWidth={2.25} />
+            {meetingLabel ?? (isLearningHub ? "Open Learning Hub" : "Open link")}
+            {meetingLabel ? (
+              <Video className="w-4 h-4" strokeWidth={2.25} />
+            ) : (
+              <ArrowUpRight className="w-4 h-4" strokeWidth={2.25} />
+            )}
           </a>
         )}
       </div>
