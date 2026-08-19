@@ -195,7 +195,9 @@ export default function ActivityEditorModal({
 
           {TRAINER_TYPES.has(type) && (
             <label className="block">
-              <span className="text-sm font-medium text-dark-teal/80">Trainer</span>
+              <span className="text-sm font-medium text-dark-teal/80">
+                {type === "team_meeting" ? "Team Leader" : "Trainer"}
+              </span>
               <input
                 value={trainer}
                 onChange={(e) => setTrainer(e.target.value)}
