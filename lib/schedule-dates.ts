@@ -1,16 +1,12 @@
 import { TrainingDay } from "./types";
 
-/**
- * Calculates the calendar date for a given day number, starting from
- * startDate (inclusive, day 1 = startDate), optionally skipping weekends.
- */
 export function calculateDate(
   startDate: Date,
   dayNumber: number,
   skipWeekends: boolean
 ): Date {
   const date = new Date(startDate);
-  let daysPlaced = 1; // startDate itself is day 1
+  let daysPlaced = 1;
 
   while (daysPlaced < dayNumber) {
     date.setDate(date.getDate() + 1);
@@ -23,7 +19,6 @@ export function calculateDate(
   return date;
 }
 
-/** Returns true if the given ISO date string is "today" (calendar date, not time). */
 export function isToday(isoDate: string): boolean {
   const today = new Date();
   const d = new Date(isoDate + "T00:00:00");
@@ -34,7 +29,6 @@ export function isToday(isoDate: string): boolean {
   );
 }
 
-/** Returns true if the given ISO date string is strictly before today. */
 export function isPast(isoDate: string): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -64,14 +58,35 @@ export function formatDateRange(days: TrainingDay[]): string {
   return `${firstStr}–${lastStr}`;
 }
 
-/** Finds the index of today's day within the schedule, or the closest upcoming day. */
 export function findFocusDayIndex(days: TrainingDay[]): number {
   const todayIdx = days.findIndex((d) => isToday(d.date));
   if (todayIdx !== -1) return todayIdx;
 
-  // No exact match (e.g. weekend, or before/after the schedule) — find the
-  // closest day: first upcoming day, or the last day if the schedule has ended.
   const upcomingIdx = days.findIndex((d) => !isPast(d.date));
   if (upcomingIdx !== -1) return upcomingIdx;
   return days.length - 1;
+}
+
+/**
+ * Maps each training day's id to its "Day N" label number, where day-off
+ * entries don't consume a number — e.g. Day 1, Day 2, Day 3, (day off),
+ * Day 4, not Day 1, Day 2, Day 3, (day off), Day 5. Day-off entries are
+ * left out of the map entirely; callers should show something like
+ * "Day off" for those instead of a number.
+ */
+export function buildTrainingDayNumbers(days: TrainingDay[]): Record<string, number> {
+  const map: Record<string, number> = {};
+  let n = 0;
+  for (const day of days) {
+    if (!day.isDayOff) {
+      n += 1;
+      map[day.id] = n;
+    }
+  }
+  return map;
+}
+
+/** Total count of non-day-off days in the schedule. */
+export function countTrainingDays(days: TrainingDay[]): number {
+  return days.filter((d) => !d.isDayOff).length;
 }
