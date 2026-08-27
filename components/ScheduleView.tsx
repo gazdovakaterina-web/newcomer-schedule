@@ -6,24 +6,26 @@ import { findFocusDayIndex, buildTrainingDayNumbers, countTrainingDays } from "@
 import ScheduleHeader from "./ScheduleHeader";
 import ScheduleIntroBanner from "./ScheduleIntroBanner";
 import JourneyRail from "./JourneyRail";
-import DayNav from "./DayNav";
+import DayNav, { ViewMode } from "./DayNav";
 import DayCard from "./DayCard";
+import ScheduleOverviewTable from "./ScheduleOverviewTable";
 
 export default function ScheduleView({ schedule }: { schedule: Schedule }) {
   const { days } = schedule;
   const [focusIndex, setFocusIndex] = useState(() => findFocusDayIndex(days));
-  const [viewAll, setViewAll] = useState(false);
+  const [mode, setMode] = useState<ViewMode>("focus");
 
   const focusDay = days[focusIndex];
   const trainingDayNumbers = buildTrainingDayNumbers(days);
   const totalTrainingDays = countTrainingDays(days);
   const focusTrainingNumber = trainingDayNumbers[focusDay.id] ?? null;
 
-  const navLabel = viewAll
-    ? `${days.length} days`
-    : focusTrainingNumber !== null
-    ? `Day ${focusTrainingNumber} / ${totalTrainingDays}`
-    : "Day off";
+  const navLabel =
+    mode === "all" || mode === "overview"
+      ? `${days.length} days`
+      : focusTrainingNumber !== null
+      ? `Day ${focusTrainingNumber} / ${totalTrainingDays}`
+      : "Day off";
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -37,7 +39,7 @@ export default function ScheduleView({ schedule }: { schedule: Schedule }) {
           trainingDayNumbers={trainingDayNumbers}
           activeDayId={focusDay.id}
           onSelect={(dayId) => {
-            setViewAll(false);
+            setMode("focus");
             setFocusIndex(days.findIndex((d) => d.id === dayId));
           }}
         />
@@ -46,16 +48,18 @@ export default function ScheduleView({ schedule }: { schedule: Schedule }) {
       <div className="mb-5">
         <DayNav
           label={navLabel}
-          viewAll={viewAll}
+          mode={mode}
           isFirst={focusIndex === 0}
           isLast={focusIndex === days.length - 1}
           onPrev={() => setFocusIndex((i) => Math.max(0, i - 1))}
           onNext={() => setFocusIndex((i) => Math.min(days.length - 1, i + 1))}
-          onToggleViewAll={() => setViewAll((v) => !v)}
+          onSetMode={setMode}
         />
       </div>
 
-      {viewAll ? (
+      {mode === "overview" ? (
+        <ScheduleOverviewTable days={days} trainingDayNumbers={trainingDayNumbers} />
+      ) : mode === "all" ? (
         <div className="space-y-5">
           {days.map((day) => (
             <DayCard
