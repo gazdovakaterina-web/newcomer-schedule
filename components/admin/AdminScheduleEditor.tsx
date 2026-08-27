@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { Schedule } from "@/lib/types";
+import { buildTrainingDayNumbers } from "@/lib/schedule-dates";
 import AdminDayCard from "./AdminDayCard";
 
 export default function AdminScheduleEditor({ schedule }: { schedule: Schedule }) {
   const router = useRouter();
   const [adding, setAdding] = useState(false);
+  const trainingDayNumbers = buildTrainingDayNumbers(schedule.days);
 
   async function handleAddDay() {
     setAdding(true);
@@ -38,7 +40,11 @@ export default function AdminScheduleEditor({ schedule }: { schedule: Schedule }
   return (
     <div className="space-y-5">
       {schedule.days.map((day) => (
-        <AdminDayCard key={day.id} day={day} />
+        <AdminDayCard
+          key={day.id}
+          day={day}
+          trainingDayNumber={trainingDayNumbers[day.id] ?? null}
+        />
       ))}
 
       <button
