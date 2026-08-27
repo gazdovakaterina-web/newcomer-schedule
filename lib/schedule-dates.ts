@@ -1,4 +1,4 @@
-import { TrainingDay } from "./types";
+import { TrainingDay, Activity } from "./types";
 
 export function calculateDate(
   startDate: Date,
@@ -67,13 +67,6 @@ export function findFocusDayIndex(days: TrainingDay[]): number {
   return days.length - 1;
 }
 
-/**
- * Maps each training day's id to its "Day N" label number, where day-off
- * entries don't consume a number — e.g. Day 1, Day 2, Day 3, (day off),
- * Day 4, not Day 1, Day 2, Day 3, (day off), Day 5. Day-off entries are
- * left out of the map entirely; callers should show something like
- * "Day off" for those instead of a number.
- */
 export function buildTrainingDayNumbers(days: TrainingDay[]): Record<string, number> {
   const map: Record<string, number> = {};
   let n = 0;
@@ -86,7 +79,26 @@ export function buildTrainingDayNumbers(days: TrainingDay[]): Record<string, num
   return map;
 }
 
-/** Total count of non-day-off days in the schedule. */
 export function countTrainingDays(days: TrainingDay[]): number {
   return days.filter((d) => !d.isDayOff).length;
+}
+
+export function formatShortDate(isoDate: string): string {
+  const d = new Date(isoDate + "T00:00:00");
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+export function splitActivities(activities: Activity[]): {
+  timed: Activity[];
+  flexible: Activity[];
+} {
+  const timed = [...activities]
+    .filter((a) => a.startTime || a.endTime)
+    .sort((a, b) => (a.startTime ?? a.endTime ?? "").localeCompare(b.startTime ?? b.endTime ?? ""));
+  const flexible = activities.filter((a) => !a.startTime && !a.endTime);
+  return { timed, flexible };
 }
