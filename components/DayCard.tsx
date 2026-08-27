@@ -20,9 +20,11 @@ function SectionLabel({
 
 export default function DayCard({
   day,
+  trainingDayNumber,
   muted = false,
 }: {
   day: TrainingDay;
+  trainingDayNumber: number | null;
   muted?: boolean;
 }) {
   const today = isToday(day.date);
@@ -35,7 +37,7 @@ export default function DayCard({
 
   return (
     <section
-      id={`day-${day.dayNumber}`}
+      id={`day-${day.id}`}
       className={`rounded-card shadow-card p-5 sm:p-7 transition-opacity ${
         day.isDayOff ? "bg-sand border-2 border-dashed border-dark-teal/15" : "bg-white"
       } ${muted && past ? "opacity-60" : "opacity-100"} ${today ? "ring-2 ring-lime" : ""}`}
@@ -43,7 +45,7 @@ export default function DayCard({
       <header className="flex items-start justify-between gap-4 mb-1">
         <div>
           <div className="text-xs font-medium tracking-widest uppercase text-teal/70">
-            Day {day.dayNumber}
+            {day.isDayOff ? "Day Off" : `Day ${trainingDayNumber}`}
           </div>
           <h2 className="text-xl sm:text-2xl font-medium text-dark-teal mt-0.5">
             {day.title}
