@@ -25,7 +25,13 @@ const typeIcon: Record<ActivityType, typeof Presentation> = {
   break: Coffee,
 };
 
-export default function AdminDayCard({ day }: { day: TrainingDay }) {
+export default function AdminDayCard({
+  day,
+  trainingDayNumber,
+}: {
+  day: TrainingDay;
+  trainingDayNumber: number | null;
+}) {
   const router = useRouter();
   const [title, setTitle] = useState(day.title);
   const [date, setDate] = useState(day.date);
@@ -58,7 +64,7 @@ export default function AdminDayCard({ day }: { day: TrainingDay }) {
   }
 
   async function handleDeleteDay() {
-    if (!confirm(`Delete Day ${day.dayNumber} — "${day.title}" — and all its activities?`)) return;
+    if (!confirm(`Delete this day — "${day.title}" — and all its activities?`)) return;
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase.from("training_days").delete().eq("id", day.id);
     if (error) {
@@ -77,7 +83,7 @@ export default function AdminDayCard({ day }: { day: TrainingDay }) {
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex-1 min-w-0">
           <div className="text-xs font-medium tracking-widest uppercase text-teal/70 mb-1">
-            Day {day.dayNumber}
+            {isDayOff ? "Day Off" : `Day ${trainingDayNumber}`}
           </div>
           <input
             value={title}
@@ -98,7 +104,7 @@ export default function AdminDayCard({ day }: { day: TrainingDay }) {
         <button
           onClick={handleDeleteDay}
           className="shrink-0 text-dark-teal/30 hover:text-red-600 transition"
-          aria-label={`Delete day ${day.dayNumber}`}
+          aria-label="Delete this day"
         >
           <Trash2 className="w-4 h-4" strokeWidth={2} />
         </button>
