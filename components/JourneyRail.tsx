@@ -6,12 +6,14 @@ import { isToday, isPast } from "@/lib/schedule-dates";
 
 export default function JourneyRail({
   days,
-  activeDayNumber,
+  trainingDayNumbers,
+  activeDayId,
   onSelect,
 }: {
   days: TrainingDay[];
-  activeDayNumber: number;
-  onSelect: (dayNumber: number) => void;
+  trainingDayNumbers: Record<string, number>;
+  activeDayId: string;
+  onSelect: (dayId: string) => void;
 }) {
   return (
     <nav aria-label="Onboarding journey">
@@ -19,12 +21,13 @@ export default function JourneyRail({
         {days.map((day) => {
           const today = isToday(day.date);
           const past = isPast(day.date) && !today;
-          const active = day.dayNumber === activeDayNumber;
+          const active = day.id === activeDayId;
+          const trainingNumber = trainingDayNumbers[day.id];
 
           return (
             <button
               key={day.id}
-              onClick={() => onSelect(day.dayNumber)}
+              onClick={() => onSelect(day.id)}
               className="flex flex-col items-center gap-1.5 w-16 shrink-0 group"
               aria-current={active ? "true" : undefined}
             >
@@ -46,7 +49,7 @@ export default function JourneyRail({
                 ) : past ? (
                   <Check className="w-4 h-4" strokeWidth={2.5} />
                 ) : (
-                  day.dayNumber
+                  trainingNumber
                 )}
               </span>
               <span
@@ -55,7 +58,7 @@ export default function JourneyRail({
                   active ? "text-dark-teal" : "text-dark-teal/50",
                 ].join(" ")}
               >
-                {today ? "Today" : day.isDayOff ? "Day off" : `Day ${day.dayNumber}`}
+                {today ? "Today" : day.isDayOff ? "Day off" : `Day ${trainingNumber}`}
               </span>
             </button>
           );
