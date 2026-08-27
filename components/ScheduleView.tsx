@@ -1,78 +1,104 @@
-"use client";
+import { TrainingDay, Activity } from "./types";
 
-import { useState } from "react";
-import { Schedule } from "@/lib/types";
-import { findFocusDayIndex, buildTrainingDayNumbers, countTrainingDays } from "@/lib/schedule-dates";
-import ScheduleHeader from "./ScheduleHeader";
-import ScheduleIntroBanner from "./ScheduleIntroBanner";
-import JourneyRail from "./JourneyRail";
-import DayNav, { ViewMode } from "./DayNav";
-import DayCard from "./DayCard";
-import ScheduleOverviewTable from "./ScheduleOverviewTable";
+export function calculateDate(
+  startDate: Date,
+  dayNumber: number,
+  skipWeekends: boolean
+): Date {
+  const date = new Date(startDate);
+  let daysPlaced = 1;
 
-export default function ScheduleView({ schedule }: { schedule: Schedule }) {
-  const { days } = schedule;
-  const [focusIndex, setFocusIndex] = useState(() => findFocusDayIndex(days));
-  const [mode, setMode] = useState<ViewMode>("focus");
+  while (daysPlaced < dayNumber) {
+    date.setDate(date.getDate() + 1);
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    if (!skipWeekends || !isWeekend) {
+      daysPlaced++;
+    }
+  }
 
-  const focusDay = days[focusIndex];
-  const trainingDayNumbers = buildTrainingDayNumbers(days);
-  const totalTrainingDays = countTrainingDays(days);
-  const focusTrainingNumber = trainingDayNumbers[focusDay.id] ?? null;
+  return date;
+}
 
-  const navLabel =
-    mode === "all" || mode === "overview"
-      ? `${days.length} days`
-      : focusTrainingNumber !== null
-      ? `Day ${focusTrainingNumber} / ${totalTrainingDays}`
-      : "Day off";
-
+export function isToday(isoDate: string): boolean {
+  const today = new Date();
+  const d = new Date(isoDate + "T00:00:00");
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <ScheduleHeader schedule={schedule} />
-
-      <ScheduleIntroBanner />
-
-      <div className="mb-8">
-        <JourneyRail
-          days={days}
-          trainingDayNumbers={trainingDayNumbers}
-          activeDayId={focusDay.id}
-          onSelect={(dayId) => {
-            setMode("focus");
-            setFocusIndex(days.findIndex((d) => d.id === dayId));
-          }}
-        />
-      </div>
-
-      <div className="mb-5">
-        <DayNav
-          label={navLabel}
-          mode={mode}
-          isFirst={focusIndex === 0}
-          isLast={focusIndex === days.length - 1}
-          onPrev={() => setFocusIndex((i) => Math.max(0, i - 1))}
-          onNext={() => setFocusIndex((i) => Math.min(days.length - 1, i + 1))}
-          onSetMode={setMode}
-        />
-      </div>
-
-      {mode === "overview" ? (
-        <ScheduleOverviewTable days={days} trainingDayNumbers={trainingDayNumbers} />
-      ) : mode === "all" ? (
-        <div className="space-y-5">
-          {days.map((day) => (
-            <DayCard
-              key={day.id}
-              day={day}
-              trainingDayNumber={trainingDayNumbers[day.id] ?? null}
-              muted
-            />
-          ))}
-        </div>
-      ) : (
-        <DayCard day={focusDay} trainingDayNumber={focusTrainingNumber} />
-      )}
-    </div>
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate()
   );
+}
+
+export function isPast(isoDate: string): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(isoDate + "T00:00:00");
+  return d.getTime() < today.getTime();
+}
+
+export function formatDayDate(isoDate: string): string {
+  const d = new Date(isoDate + "T00:00:00");
+  return d.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+export function formatDateRange(days: TrainingDay[]): string {
+  if (days.length === 0) return "";
+  const first = new Date(days[0].date + "T00:00:00");
+  const last = new Date(days[days.length - 1].date + "T00:00:00");
+  const sameMonth = first.getMonth() === last.getMonth();
+  const firstStr = first.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+  const lastStr = last.toLocaleDateString(
+    "en-US",
+    sameMonth ? { day: "numeric" } : { month: "long", day: "numeric" }
+  );
+  return `${firstStr}–${lastStr}`;
+}
+
+export function findFocusDayIndex(days: TrainingDay[]): number {
+  const todayIdx = days.findIndex((d) => isToday(d.date));
+  if (todayIdx !== -1) return todayIdx;
+
+  const upcomingIdx = days.findIndex((d) => !isPast(d.date));
+  if (upcomingIdx !== -1) return upcomingIdx;
+  return days.length - 1;
+}
+
+export function buildTrainingDayNumbers(days: TrainingDay[]): Record<string, number> {
+  const map: Record<string, number> = {};
+  let n = 0;
+  for (const day of days) {
+    if (!day.isDayOff) {
+      n += 1;
+      map[day.id] = n;
+    }
+  }
+  return map;
+}
+
+export function countTrainingDays(days: TrainingDay[]): number {
+  return days.filter((d) => !d.isDayOff).length;
+}
+
+export function formatShortDate(isoDate: string): string {
+  const d = new Date(isoDate + "T00:00:00");
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+export function splitActivities(activities: Activity[]): {
+  timed: Activity[];
+  flexible: Activity[];
+} {
+  const timed = [...activities]
+    .filter((a) => a.startTime || a.endTime)
+    .sort((a, b) => (a.startTime ?? a.endTime ?? "").localeCompare(b.startTime ?? b.endTime ?? ""));
+  const flexible = activities.filter((a) => !a.startTime && !a.endTime);
+  return { timed, flexible };
 }
